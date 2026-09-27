@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVE Healthcare — Diagnostic Test Booking & Payment Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --border: #e2e8f0;
+      --border-accent: #cbd5e1;
+      --primary: #0d9488;
+      --primary-hover: #0f766e;
+      --primary-light: #f0fdfa;
+      --primary-border: #99f6e4;
+      --blue: #0284c7;
+      --blue-light: #f0f9ff;
+      --blue-border: #bae6fd;
+      --amber: #d97706;
+      --amber-light: #fffbeb;
+      --amber-border: #fde68a;
+      --rose: #e11d48;
+      --rose-light: #fff1f2;
+      --rose-border: #fecdd3;
+      --purple: #7c3aed;
+      --purple-hover: #6d28d9;
+      --purple-light: #f5f3ff;
+      --purple-border: #ddd6fe;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --text-dim: #64748b;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+      --font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.5;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .icon-svg {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      stroke-width: 2;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(13, 148, 136, 0.25);
+    }
+
+    .brand-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .brand-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary-border);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .api-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: inherit;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      text-decoration: none;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-subtle);
+      color: var(--text);
+      border-color: var(--border-accent);
+    }
+
+    .btn-outline-danger {
+      background: var(--rose-light);
+      color: var(--rose);
+      border: 1px solid var(--rose-border);
+    }
+
+    .btn-outline-danger:hover {
+      background: #ffe4e6;
+    }
+
+    .btn-purple {
+      background: var(--purple);
+      color: #fff;
+    }
+
+    .btn-purple:hover {
+      background: var(--purple-hover);
+      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+    }
+
+    /* Main Container */
+    .main-content {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+    }
+
+    /* Hero Banner */
+    .hero {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+    }
+
+    .hero-text h1 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .hero-text p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      max-width: 700px;
+    }
+
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: var(--radius-full);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    /* Dashboard Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 28px;
+    }
+
+    @media (max-width: 960px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 28px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+    }
+
+    /* Centres List */
+    .centres-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .centre-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .centre-card:hover {
+      border-color: var(--primary-border);
+      box-shadow: var(--shadow-md);
+    }
+
+    .centre-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .centre-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .centre-location {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 3px;
+    }
+
+    .tests-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .test-chip {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.15s ease;
+    }
+
+    .test-chip:hover {
+      background: var(--blue-light);
+      border-color: var(--blue-border);
+    }
+
+    .test-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 140px;
+    }
+
+    .test-price {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: var(--font-mono);
+    }
+
+    .btn-book-sm {
+      padding: 5px 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary-border);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-book-sm:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Bookings */
+    .bookings-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .booking-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
+    }
+
+    .booking-item:hover {
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-accent);
+    }
+
+    .booking-main {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .booking-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+    }
+
+    .booking-id-tag {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .booking-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .booking-meta-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Status Pills */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .status-PENDING {
+      background: var(--amber-light);
+      color: var(--amber);
+      border: 1px solid var(--amber-border);
+    }
+
+    .status-CONFIRMED {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary-border);
+    }
+
+    .status-CANCELLED {
+      background: var(--rose-light);
+      color: var(--rose);
+      border: 1px solid var(--rose-border);
+    }
+
+    .status-FAILED {
+      background: var(--bg-subtle);
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+
+    .booking-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Webhook Simulator Lab */
+    .lab-card {
+      background: #ffffff;
+      border: 1px solid var(--purple-border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 9px 12px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    /* Terminal window in Lab */
+    .terminal-window {
+      background: #0f172a;
+      border-radius: var(--radius-sm);
+      border: 1px solid #1e293b;
+      padding: 14px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      margin-top: 16px;
+      min-height: 120px;
+      max-height: 220px;
+      overflow-y: auto;
+      color: #38bdf8;
+    }
+
+    .terminal-header {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #94a3b8;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      padding: 12px 18px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.2s ease forwards;
+    }
+
+    .toast-success { border-left: 4px solid var(--primary); }
+    .toast-error { border-left: 4px solid var(--rose); }
+    .toast-info { border-left: 4px solid var(--blue); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 90;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      max-width: 440px;
+      width: 90%;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="nav-container">
+      <a href="/" class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 14V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4z"/>
+            <path d="M12 8v8"/>
+            <path d="M8 12h8"/>
+          </svg>
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="brand-title">EVE Healthcare</span>
+            <span class="brand-badge">Delhi NCR Hub</span>
+          </div>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <div class="api-status">
+          <div class="status-dot" id="apiDot"></div>
+          <span id="apiStatusText">Service: Online</span>
+        </div>
+        <a href="/docs" target="_blank" class="btn btn-secondary">
+          <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Swagger Docs
+        </a>
+        <a href="/redoc" target="_blank" class="btn btn-secondary">ReDoc</a>
+        <button id="authBtn" class="btn btn-primary" onclick="openAuthModal()">Demo Login</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    
+    <!-- Hero Banner -->
+    <section class="hero">
+      <div class="hero-text">
+        <h1>Diagnostic Test Booking & Payment System</h1>
+        <p>Production backend service for top hospitals across Delhi NCR. Featuring row-level locking for double-charge prevention, a strict booking state machine, and atomic webhook deduplication.</p>
+        <div class="hero-badges">
+          <div class="badge-pill">
+            <svg class="icon-svg" style="width:14px; height:14px; color:var(--primary);" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Concurrency: <code>SELECT ... FOR UPDATE</code>
+          </div>
+          <div class="badge-pill">
+            <svg class="icon-svg" style="width:14px; height:14px; color:var(--purple);" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Idempotency: <code>UNIQUE event_id</code>
+          </div>
+          <div class="badge-pill">
+            <svg class="icon-svg" style="width:14px; height:14px; color:var(--blue);" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Auth: <code>JWT + Bcrypt</code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+      
+      <!-- Left Column: Catalog & Bookings -->
+      <div>
+        
+        <!-- Diagnostic Centres & Tests -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <svg class="icon-svg" style="width:20px; height:20px; color:var(--primary);" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/><path d="M9 9h6"/><path d="M12 6v6"/></svg>
+              Hospital Diagnostic Labs (Delhi NCR)
+            </h2>
+            <button class="btn btn-secondary" style="font-size:0.75rem; padding:4px 10px;" onclick="loadCentres()">
+              <svg class="icon-svg" style="width:12px; height:12px;" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Refresh
+            </button>
+          </div>
+          <div class="centres-list" id="centresContainer">
+            <p style="color:var(--text-dim); font-size:0.9rem;">Loading diagnostic centres from PostgreSQL...</p>
+          </div>
+        </div>
+
+        <!-- My Bookings -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <svg class="icon-svg" style="width:20px; height:20px; color:var(--blue);" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+              My Bookings
+            </h2>
+            <button class="btn btn-secondary" style="font-size:0.75rem; padding:4px 10px;" onclick="loadBookings()">
+              <svg class="icon-svg" style="width:12px; height:12px;" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Refresh
+            </button>
+          </div>
+          <div class="bookings-list" id="bookingsContainer">
+            <p style="color:var(--text-dim); font-size:0.85rem;">Login to view your booked diagnostic tests.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Webhook Simulator Lab -->
+      <div>
+        <div class="card lab-card">
+          <div class="card-header" style="border-color: var(--purple-border);">
+            <h2 class="card-title" style="color:var(--purple);">
+              <svg class="icon-svg" style="width:20px; height:20px;" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Webhook Idempotency Lab
+            </h2>
+          </div>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:16px;">
+            Simulate payment provider webhooks sent to <code>POST /payments/webhook</code>. Sending the same event twice tests database-level deduplication.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Event ID (Unique provider reference)</label>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="webhookEventId" class="form-input" style="font-family:var(--font-mono); font-size:0.8rem;" value="evt_demo_1001">
+              <button class="btn btn-secondary" style="padding:6px 12px;" title="Generate new ID" onclick="generateEventId()">
+                <svg class="icon-svg" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Target Booking ID</label>
+            <input type="number" id="webhookBookingId" class="form-input" value="1">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Simulated Outcome</label>
+            <select id="webhookStatus" class="form-select">
+              <option value="SUCCESS">SUCCESS (Confirms Booking)</option>
+              <option value="FAILED">FAILED (Fails Booking)</option>
+            </select>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:16px;">
+            <button class="btn btn-primary" onclick="triggerWebhook(false)">
+              <svg class="icon-svg" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              1. Send Webhook (Initial Delivery)
+            </button>
+            <button class="btn btn-purple" onclick="triggerWebhook(true)">
+              <svg class="icon-svg" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              2. Replay Exact Same (Test Idempotency)
+            </button>
+          </div>
+
+          <!-- Live Terminal Output -->
+          <div class="terminal-window">
+            <div class="terminal-header">
+              <span>RESPONSE STREAM</span>
+              <span id="terminalLatency">0ms</span>
+            </div>
+            <pre id="terminalOutput" style="white-space:pre-wrap; word-break:break-all;">Ready. Click Send Webhook to test.</pre>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Auth Modal -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 style="font-size:1.1rem; font-weight:700;">Account Authentication</h3>
+        <button class="modal-close" onclick="closeAuthModal()">&times;</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" id="authEmail" class="form-input" value="patient@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="authPassword" class="form-input" value="SecurePassword123">
+      </div>
+      <div style="display:flex; gap:10px; margin-top:18px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="handleLogin()">Log In</button>
+        <button class="btn btn-secondary" style="flex:1;" onclick="handleSignup()">Sign Up</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Book Test Modal -->
+  <div class="modal-overlay" id="bookModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 style="font-size:1.1rem; font-weight:700;">Book Diagnostic Test</h3>
+        <button class="modal-close" onclick="closeBookModal()">&times;</button>
+      </div>
+      <div style="padding:14px; background:var(--bg-subtle); border-radius:8px; margin-bottom:14px; border:1px solid var(--border);">
+        <div style="font-weight:700; font-size:0.95rem;" id="modalTestName">-</div>
+        <div style="color:var(--primary); font-weight:700; font-family:var(--font-mono); font-size:0.88rem; margin-top:2px;" id="modalTestPrice">-</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Appointment Date & Time</label>
+        <input type="datetime-local" id="appointmentTimeInput" class="form-input">
+      </div>
+      <input type="hidden" id="selectedTestId">
+      <div style="margin-top:18px;">
+        <button class="btn btn-primary" style="width:100%;" onclick="submitBooking()">Confirm & Create Booking</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Javascript Application Logic -->
+  <script>
+    let authToken = localStorage.getItem('eve_token') || null;
+    let currentUser = localStorage.getItem('eve_email') || null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      checkHealth();
+      updateAuthUI();
+      loadCentres();
+      if (authToken) {
+        loadBookings();
+      }
+      initDefaultAppointmentTime();
+    });
+
+    function initDefaultAppointmentTime() {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(10, 0, 0, 0);
+      const iso = new Date(tomorrow.getTime() - tomorrow.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      document.getElementById('appointmentTimeInput').value = iso;
+    }
+
+    function showToast(msg, type = 'success') {
+      const c = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = `toast toast-${type}`;
+      
+      let iconSvg = '<svg class="icon-svg" style="color:var(--primary);" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+      if (type === 'error') {
+        iconSvg = '<svg class="icon-svg" style="color:var(--rose);" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      } else if (type === 'info') {
+        iconSvg = '<svg class="icon-svg" style="color:var(--blue);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+      }
+
+      t.innerHTML = `${iconSvg} <span>${msg}</span>`;
+      c.appendChild(t);
+      setTimeout(() => t.remove(), 4000);
+    }
+
+    async function checkHealth() {
+      try {
+        const res = await fetch('/health');
+        if (res.ok) {
+          document.getElementById('apiDot').style.background = '#10b981';
+          document.getElementById('apiStatusText').textContent = 'Service: Online';
+        }
+      } catch (e) {
+        document.getElementById('apiDot').style.background = '#e11d48';
+        document.getElementById('apiStatusText').textContent = 'Service: Offline';
+      }
+    }
+
+    function updateAuthUI() {
+      const btn = document.getElementById('authBtn');
+      if (authToken && currentUser) {
+        btn.textContent = `Logout (${currentUser.split('@')[0]})`;
+        btn.className = 'btn btn-secondary';
+        btn.onclick = handleLogout;
+      } else {
+        btn.textContent = 'Demo Login';
+        btn.className = 'btn btn-primary';
+        btn.onclick = openAuthModal;
+      }
+    }
+
+    function openAuthModal() {
+      document.getElementById('authModal').classList.add('active');
+    }
+
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.remove('active');
+    }
+
+    async function handleSignup() {
+      const email = document.getElementById('authEmail').value;
+      const password = document.getElementById('authPassword').value;
+      try {
+        const res = await fetch('/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast('Account created! Now logging in...', 'success');
+          handleLogin();
+        } else {
+          showToast(data.detail || 'Signup failed', 'error');
+        }
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function handleLogin() {
+      const email = document.getElementById('authEmail').value;
+      const password = document.getElementById('authPassword').value;
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          authToken = data.access_token;
+          currentUser = email;
+          localStorage.setItem('eve_token', authToken);
+          localStorage.setItem('eve_email', currentUser);
+          updateAuthUI();
+          closeAuthModal();
+          showToast('Logged in successfully!', 'success');
+          loadBookings();
+        } else {
+          showToast(data.detail || 'Invalid login', 'error');
+        }
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    function handleLogout() {
+      authToken = null;
+      currentUser = null;
+      localStorage.removeItem('eve_token');
+      localStorage.removeItem('eve_email');
+      updateAuthUI();
+      document.getElementById('bookingsContainer').innerHTML = '<p style="color:var(--text-dim); font-size:0.85rem;">Login to view your booked tests.</p>';
+      showToast('Logged out.', 'info');
+    }
+
+    // Load Diagnostic Centres & Tests
+    async function loadCentres() {
+      const c = document.getElementById('centresContainer');
+      try {
+        const res = await fetch('/centres/');
+        const centres = await res.json();
+        if (!centres || centres.length === 0) {
+          c.innerHTML = '<p style="color:var(--text-dim);">No centres found.</p>';
+          return;
+        }
+
+        c.innerHTML = centres.map(centre => `
+          <div class="centre-card">
+            <div class="centre-header">
+              <div>
+                <div class="centre-name">${centre.name}</div>
+                <div class="centre-location">
+                  <svg class="icon-svg" style="width:14px; height:14px; color:var(--text-dim);" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  ${centre.location}
+                </div>
+              </div>
+              <span class="badge-pill" style="font-size:0.7rem;">${centre.tests ? centre.tests.length : 0} Tests</span>
+            </div>
+            <div class="tests-grid">
+              ${(centre.tests || []).map(t => `
+                <div class="test-chip">
+                  <div style="overflow:hidden;">
+                    <div class="test-name" title="${t.name}">${t.name}</div>
+                    <div class="test-price">₹${t.price.toFixed(2)}</div>
+                  </div>
+                  <button class="btn-book-sm" onclick="openBookModal(${t.id}, '${t.name.replace(/'/g, "\\'")}', ${t.price})">Book</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        c.innerHTML = `<p style="color:var(--rose);">Error loading centres: ${e.message}</p>`;
+      }
+    }
+
+    function openBookModal(testId, testName, testPrice) {
+      if (!authToken) {
+        openAuthModal();
+        showToast('Please log in first to book a test', 'info');
+        return;
+      }
+      document.getElementById('selectedTestId').value = testId;
+      document.getElementById('modalTestName').textContent = testName;
+      document.getElementById('modalTestPrice').textContent = `₹${testPrice.toFixed(2)}`;
+      document.getElementById('bookModal').classList.add('active');
+    }
+
+    function closeBookModal() {
+      document.getElementById('bookModal').classList.remove('active');
+    }
+
+    async function submitBooking() {
+      const testId = parseInt(document.getElementById('selectedTestId').value);
+      const appointmentTimeVal = document.getElementById('appointmentTimeInput').value;
+      if (!appointmentTimeVal) {
+        showToast('Please select a date & time', 'error');
+        return;
+      }
+      const appointment_time = new Date(appointmentTimeVal).toISOString();
+
+      try {
+        const res = await fetch('/bookings/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ test_id: testId, appointment_time })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(`Booking #${data.id} created! (Status: ${data.status})`, 'success');
+          closeBookModal();
+          loadBookings();
+          document.getElementById('webhookBookingId').value = data.id;
+        } else {
+          showToast(data.detail || 'Could not create booking', 'error');
+        }
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function loadBookings() {
+      const c = document.getElementById('bookingsContainer');
+      if (!authToken) return;
+
+      try {
+        const res = await fetch('/bookings/', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!res.ok) {
+          if (res.status === 401) handleLogout();
+          return;
+        }
+        const bookings = await res.json();
+        if (!bookings || bookings.length === 0) {
+          c.innerHTML = '<p style="color:var(--text-dim); font-size:0.85rem;">No bookings placed yet. Book a test above!</p>';
+          return;
+        }
+
+        c.innerHTML = bookings.map(b => {
+          const testName = b.test ? b.test.name : `Test #${b.test_id}`;
+          const centreName = b.centre ? b.centre.name : '';
+          const dateStr = new Date(b.appointment_time).toLocaleString();
+
+          return `
+            <div class="booking-item">
+              <div class="booking-main">
+                <div class="booking-title">
+                  <span>${testName}</span>
+                  <span class="booking-id-tag">#${b.id}</span>
+                  <span class="status-badge status-${b.status}">${b.status}</span>
+                </div>
+                <div class="booking-meta">
+                  <span class="booking-meta-item">
+                    <svg class="icon-svg" style="width:13px; height:13px; color:var(--text-dim);" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>
+                    ${centreName}
+                  </span>
+                  <span class="booking-meta-item">
+                    <svg class="icon-svg" style="width:13px; height:13px; color:var(--text-dim);" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    ${dateStr}
+                  </span>
+                  <span class="booking-meta-item" style="font-weight:700; color:var(--text);">
+                    ₹${b.amount.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+              <div class="booking-actions">
+                ${b.status === 'PENDING' ? `
+                  <button class="btn btn-primary" style="padding:6px 14px; font-size:0.75rem;" onclick="simulatePayment(${b.id}, 'SUCCESS')">
+                    Pay Now
+                  </button>
+                  <button class="btn btn-outline-danger" style="padding:6px 12px; font-size:0.75rem;" onclick="cancelBooking(${b.id})">
+                    Cancel
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        c.innerHTML = `<p style="color:var(--rose);">Error loading bookings: ${e.message}</p>`;
+      }
+    }
+
+    async function simulatePayment(bookingId, status) {
+      try {
+        const res = await fetch('/payments/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ booking_id: bookingId, simulate_status: status })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(`Payment processed: ${data.status}!`, 'success');
+          loadBookings();
+        } else {
+          showToast(data.detail || 'Payment rejected', 'error');
+        }
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function cancelBooking(bookingId) {
+      if (!confirm(`Are you sure you want to cancel Booking #${bookingId}?`)) return;
+      try {
+        const res = await fetch(`/bookings/${bookingId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          showToast(`Booking #${bookingId} cancelled.`, 'info');
+          loadBookings();
+        } else {
+          const data = await res.json();
+          showToast(data.detail || 'Could not cancel booking', 'error');
+        }
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    // Webhook Simulator Lab
+    function generateEventId() {
+      const rand = Math.floor(1000 + Math.random() * 9000);
+      document.getElementById('webhookEventId').value = `evt_demo_${rand}`;
+    }
+
+    async function triggerWebhook(isReplay) {
+      const event_id = document.getElementById('webhookEventId').value;
+      const booking_id = parseInt(document.getElementById('webhookBookingId').value) || 1;
+      const status = document.getElementById('webhookStatus').value;
+      const terminal = document.getElementById('terminalOutput');
+      const latencyTag = document.getElementById('terminalLatency');
+
+      const payload = {
+        event_id,
+        event_type: status === 'SUCCESS' ? 'payment.success' : 'payment.failed',
+        data: {
+          booking_id,
+          provider_reference_id: `pay_ref_${event_id}`,
+          status,
+          amount: 450.0
+        }
+      };
+
+      const t0 = performance.now();
+      try {
+        const res = await fetch('/payments/webhook', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const latency = Math.round(performance.now() - t0);
+        latencyTag.textContent = `${latency}ms`;
+
+        const data = await res.json();
+        const output = `HTTP ${res.status} ${res.statusText}\n` +
+          `Event: ${event_id}\n` +
+          `Status: ${data.status}\n` +
+          `Detail: ${data.detail || 'N/A'}\n\n` +
+          JSON.stringify(data, null, 2);
+
+        terminal.textContent = output;
+
+        if (data.status === 'already_processed') {
+          showToast(`Idempotency caught duplicate: ${event_id} (No-op)`, 'info');
+        } else {
+          showToast(`Webhook processed: ${event_id}`, 'success');
+          if (authToken) loadBookings();
+        }
+      } catch (e) {
+        terminal.textContent = `Error: ${e.message}`;
+        showToast(e.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

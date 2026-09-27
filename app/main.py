@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import auth, centres, bookings, payments
@@ -42,19 +42,21 @@ app.add_middleware(
 )
 
 
+from pathlib import Path
+
+STATIC_INDEX = Path(__file__).resolve().parent / "static" / "index.html"
+
+
 @app.get("/health", tags=["Health"])
 def health_check():
     return {"status": "ok", "version": settings.VERSION}
 
 
-@app.get("/", tags=["Root"])
+@app.get("/", tags=["Root"], response_class=HTMLResponse)
 def root():
-    return {
-        "service": settings.PROJECT_NAME,
-        "version": settings.VERSION,
-        "docs": "/docs",
-        "health": "/health",
-    }
+    if STATIC_INDEX.exists():
+        return FileResponse(STATIC_INDEX)
+    return HTMLResponse("<h3>EVE Healthcare Service Online</h3><p><a href='/docs'>Swagger API Docs</a></p>")
 
 
 # Include all routers

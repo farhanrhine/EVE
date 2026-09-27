@@ -246,7 +246,8 @@ This runs PostgreSQL, the FastAPI service, and pgAdmin together:
 docker compose up -d --build
 ```
 - **FastAPI API & Docs:** http://localhost:8000/docs
-- **pgAdmin:** http://localhost:5050 (Credentials: `admin@admin.com` / `admin`)
+- **ReDoc Documentation:** http://localhost:8000/redoc
+- **pgAdmin 4 Web Console:** http://localhost:5050 (Credentials: `admin@admin.com` / `admin`)
 - **Postgres Port:** `localhost:5432`
 
 ### Option B: Run Locally with `uv`

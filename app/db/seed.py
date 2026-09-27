@@ -5,8 +5,8 @@ from app.core.logging import logger
 
 SAMPLE_DATA = [
     {
-        "name": "Apollo Diagnostics - Indiranagar",
-        "location": "100ft Road, Indiranagar, Bangalore",
+        "name": "Max Super Speciality Hospital Diagnostic Lab - Saket",
+        "location": "1, 2 Press Enclave Road, Saket, New Delhi (Delhi NCR)",
         "tests": [
             {"name": "Complete Blood Count (CBC)", "price": 450.0},
             {"name": "Lipid Profile", "price": 750.0},
@@ -15,8 +15,8 @@ SAMPLE_DATA = [
         ],
     },
     {
-        "name": "Max Healthcare Diagnostic Centre - Koramangala",
-        "location": "80ft Road, 4th Block, Koramangala, Bangalore",
+        "name": "Apollo Diagnostics - South Extension",
+        "location": "Ring Road, South Extension Part II, New Delhi (Delhi NCR)",
         "tests": [
             {"name": "Liver Function Test (LFT)", "price": 800.0},
             {"name": "Kidney Function Test (KFT)", "price": 850.0},
@@ -25,8 +25,8 @@ SAMPLE_DATA = [
         ],
     },
     {
-        "name": "Dr. Lal PathLabs - Whitefield",
-        "location": "ITPL Main Road, Whitefield, Bangalore",
+        "name": "Fortis Memorial Research Institute Lab - Gurugram",
+        "location": "Sector 44, Opposite Millennium City Centre, Gurugram (Delhi NCR)",
         "tests": [
             {"name": "Comprehensive Full Body Health Checkup", "price": 2499.0},
             {"name": "Urine Routine & Microscopic", "price": 250.0},
@@ -45,9 +45,15 @@ def seed_database(db: Session = None) -> None:
 
     try:
         # Check if already seeded
-        existing_centre = db.query(DiagnosticCentre).first()
-        if existing_centre:
-            logger.info("Database already seeded with diagnostic centres and tests.")
+        centres = db.query(DiagnosticCentre).order_by(DiagnosticCentre.id).all()
+        if centres:
+            # Update existing records to Delhi NCR
+            for idx, c in enumerate(centres):
+                if idx < len(SAMPLE_DATA):
+                    c.name = SAMPLE_DATA[idx]["name"]
+                    c.location = SAMPLE_DATA[idx]["location"]
+            db.commit()
+            logger.info("Diagnostic centres refreshed with Delhi NCR locations.")
             return
 
         for centre_info in SAMPLE_DATA:
