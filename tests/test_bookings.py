@@ -66,7 +66,7 @@ def test_create_booking_past_time_fails(client, auth_user, sample_test):
             "appointment_time": past_time,
         },
     )
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 def test_get_booking_by_id(client, auth_user, sample_test):

@@ -30,14 +30,14 @@ def test_signup_invalid_data(client):
         "/auth/signup",
         json={"email": "valid@example.com", "password": "123"},
     )
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
     # Invalid email
     response = client.post(
         "/auth/signup",
         json={"email": "not-an-email", "password": "securepassword123"},
     )
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 def test_login_success(client, auth_user):
