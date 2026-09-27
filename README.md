@@ -20,7 +20,141 @@ Production-ready backend service for diagnostic test bookings and simulated paym
 
 ---
 
-## 2. Database Schema
+## 2. Codebase Architecture
+
+The application is structured following a clean, layered architectural pattern that separates concerns across API presentation, business logic, data models, and persistence.
+
+### Architectural Diagram
+
+```mermaid
+graph TD
+    subgraph ClientLayer["Clients & Integrations"]
+        SPA["Web / Mobile Clients"]
+        SWAGGER["Swagger UI (/docs)"]
+        PROVIDER["External Payment Provider"]
+    end
+
+    subgraph FastAPIServer["FastAPI Backend Service (Docker: eve-app)"]
+        MIDDLEWARE["CORS Middleware & Structured JSON Logger"]
+        
+        subgraph APILayer["API Routers (app/api/)"]
+            AUTH_API["auth.py (/auth)"]
+            CENTRES_API["centres.py (/centres)"]
+            BOOKINGS_API["bookings.py (/bookings)"]
+            PAYMENTS_API["payments.py (/payments)"]
+        end
+
+        subgraph CoreSecurity["Core & Security (app/core/ & deps.py)"]
+            DEPS["Dependencies: get_db, get_current_user"]
+            SEC["JWT Tokens & Bcrypt Password Hashing"]
+            CFG["Pydantic Settings & Environment (.env)"]
+        end
+
+        subgraph Validation["Validation & DTOs (app/schemas/)"]
+            USER_SCH["User Schemas"]
+            CENTRE_SCH["Centre & Test Schemas"]
+            BOOKING_SCH["Booking Schemas"]
+            PAYMENT_SCH["Payment & Webhook Schemas"]
+        end
+
+        subgraph ServiceLayer["Business Logic Layer (app/services/)"]
+            BOOK_SVC["booking_service.py<br/>• State Machine Transitions<br/>• Ownership Verification"]
+            PAY_SVC["payment_service.py<br/>• Row-level Locks (FOR UPDATE)<br/>• Atomic Webhook Idempotency"]
+        end
+    end
+
+    subgraph DataStorage["Data & Persistence Layer"]
+        ORM["SQLAlchemy 2.0 ORM Models (app/db/models.py)"]
+        MIGRATIONS["Alembic Migrations (alembic/)"]
+        POSTGRES[("PostgreSQL 16 DB (Docker: eve-db)")]
+        PGADMIN["pgAdmin 4 (Docker: eve-pgadmin)"]
+    end
+
+    SPA -->|HTTP Requests| MIDDLEWARE
+    SWAGGER -->|Interactive Testing| MIDDLEWARE
+    PROVIDER -->|POST /payments/webhook| MIDDLEWARE
+    MIDDLEWARE --> APILayer
+    APILayer --> DEPS
+    APILayer --> Validation
+    APILayer --> ServiceLayer
+    ServiceLayer --> ORM
+    ORM --> POSTGRES
+    MIGRATIONS -.->|Schema Versioning| POSTGRES
+    PGADMIN -.->|Database Inspection| POSTGRES
+```
+
+### Layered Architecture Responsibilities
+
+1. **API Presentation Layer (`app/api/`):**
+   - Implements RESTful HTTP routes using FastAPI `APIRouter`.
+   - All DB-interacting routes are declared as standard `def` (instead of `async def`) so FastAPI delegates them to an internal threadpool, preventing blocking calls on the `psycopg2` driver from stalling the event loop.
+   - Decoupled from direct database manipulations by calling into dedicated services.
+
+2. **Business & Domain Logic Layer (`app/services/`):**
+   - **`booking_service.py`:** Enforces business logic such as appointment slot validation, owner verification, and legal booking state machine transitions (`PENDING -> CONFIRMED`, `PENDING -> FAILED`, `PENDING/CONFIRMED -> CANCELLED`).
+   - **`payment_service.py`:** Manages simulated payment execution, concurrency serialization via row-level locking (`with_for_update()`), and atomic idempotency checks on webhook delivery.
+
+3. **Data Access & Persistence Layer (`app/db/` & `alembic/`):**
+   - Declarative SQLAlchemy models mapping relational tables with strict foreign keys, cascade/restrict rules, and unique constraints.
+   - Version-controlled schema migrations through Alembic scripts.
+
+4. **Request/Response Validation Layer (`app/schemas/`):**
+   - Strict Pydantic v2 schemas providing input validation, type coercion, and serializing responses.
+   - Ensures malformed requests are rejected immediately with `422 Unprocessable Content`.
+
+5. **Security & Configuration Layer (`app/core/`):**
+   - Manages environment variables using `pydantic-settings`.
+   - Direct `bcrypt` password hashing and constant-time verification.
+   - Stateless JWT generation and validation via `python-jose`.
+
+### Directory Structure
+
+```
+EVE/
+├── app/
+│   ├── main.py                     # Application entrypoint & lifespan events
+│   ├── api/                        # HTTP route handlers
+│   │   ├── deps.py                 # Dependency injection (get_db, get_current_user)
+│   │   ├── auth.py                 # /auth/signup & /auth/login
+│   │   ├── centres.py              # /centres & /centres/{id}/tests
+│   │   ├── bookings.py             # /bookings CRUD & status updates
+│   │   └── payments.py             # /payments simulation & /payments/webhook
+│   ├── core/                       # Shared configuration & security utilities
+│   │   ├── config.py               # Pydantic BaseSettings & env parsing
+│   │   ├── security.py             # JWT token creation & bcrypt password hashing
+│   │   └── logging.py              # Structured JSON application logger
+│   ├── db/                         # Database connection & models
+│   │   ├── base.py                 # SQLAlchemy engine, session maker & Base
+│   │   ├── models.py               # Database entities (User, Booking, Payment, etc.)
+│   │   └── seed.py                 # Seed script for initial diagnostic centres/tests
+│   ├── schemas/                    # Pydantic validation & transfer models
+│   │   ├── user.py                 # User signup & token models
+│   │   ├── centre.py               # Diagnostic centre & test models
+│   │   ├── booking.py              # Booking create & response models
+│   │   └── payment.py              # Payment & webhook event models
+│   └── services/                   # Encapsulated domain business logic
+│       ├── booking_service.py      # Booking lifecycle & state-machine guards
+│       └── payment_service.py      # Concurrency lock & webhook idempotency
+├── alembic/                        # Database migration scripts
+│   ├── versions/                   # Migration versions (001_initial_schema.py)
+│   └── env.py                      # Alembic environment config
+├── tests/                          # Automated pytest suite (32 tests)
+│   ├── conftest.py                 # In-memory SQLite fixtures & TestClient setup
+│   ├── test_auth.py                # Auth, JWT, and credential tests
+│   ├── test_bookings.py            # Booking lifecycle & authorization tests
+│   ├── test_payments.py            # Payment simulation & concurrency lock tests
+│   └── test_webhook_idempotency.py # Webhook idempotency & deduplication tests
+├── Dockerfile                      # Container build definition using uv
+├── docker-compose.yml              # Multi-container stack (app, postgres, pgadmin)
+├── pyproject.toml                  # Python package specifications & pytest config
+├── uv.lock                         # Deterministic package lockfile
+├── .env.example                    # Environment variable template
+└── README.md                       # Comprehensive documentation & setup guide
+```
+
+---
+
+## 3. Database Schema
 
 ```mermaid
 erDiagram
@@ -96,7 +230,7 @@ erDiagram
 
 ---
 
-## 3. Quickstart & Local Setup
+## 4. Quickstart & Local Setup
 
 ### Prerequisites
 - [uv](https://astral.sh/uv) (fast Python package manager)
@@ -145,7 +279,7 @@ docker compose up -d --build
 
 ---
 
-## 4. API Endpoints & Example Requests
+## 5. API Endpoints & Example Requests
 
 ### Authentication
 #### Signup: `POST /auth/signup`
@@ -240,7 +374,7 @@ curl -X POST http://localhost:8000/payments/webhook \
 
 ---
 
-## 5. Running Tests
+## 6. Running Tests
 
 Tests use an isolated in-memory SQLite database and test client. All 32+ unit, integration, concurrency, and idempotency tests run via `pytest`:
 
@@ -256,7 +390,7 @@ uv run pytest -v
 
 ---
 
-## 6. Assumptions Made
+## 7. Assumptions Made
 1. **Mock Payment Outcome:** `/payments/` defaults to simulating a `SUCCESS` outcome. For test predictability, an optional `simulate_status` parameter (`SUCCESS` or `FAILED`) can be passed.
 2. **Webhook Event ID:** `event_id` is generated by the payment provider and is guaranteed to be globally unique per payment attempt.
 3. **Single Currency:** Prices and amounts are handled in a single currency (INR) without multi-currency exchange rates.
@@ -264,7 +398,7 @@ uv run pytest -v
 
 ---
 
-## 7. What I Would Improve with More Time
+## 8. What I Would Improve with More Time
 1. **Redis Caching:** Cache diagnostic centre and test catalogs with TTL-based expiration and cache invalidation on updates.
 2. **Asynchronous Webhook Processing via Celery/RabbitMQ:** Push incoming webhook events to a high-throughput message queue (returning 202 Accepted immediately) and process payment updates asynchronously with background workers.
 3. **Rate Limiting:** Implement sliding-window rate limiting on `/auth/login` and `/payments/` using Redis token-bucket algorithm to prevent brute-force attacks and payment flooding.
